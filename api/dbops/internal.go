@@ -24,7 +24,7 @@ func InsertSession(sid string, ttl int64, login_name string) error {
 	return nil
 }
 
-//取出session
+
 func RetrieveSession(sid string) (*defs.SimpleSession, error) {
 	ss := &defs.SimpleSession{}
 	stmtOut, err := dbConn.Prepare("SELECT TTL, login_name FROM sessions WHERE session_id=?")
@@ -50,7 +50,7 @@ func RetrieveSession(sid string) (*defs.SimpleSession, error) {
 	return ss, nil
 }
 
-//从DB加载全部session到cache
+
 func RetrieveAllSessions() (*sync.Map, error) {
 	m := &sync.Map{}
 	stmtOut, err := dbConn.Prepare("SELECT * FROM sessions")
