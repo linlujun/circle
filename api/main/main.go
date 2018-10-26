@@ -11,22 +11,12 @@ type middleWareHandler struct {
 	r *httprouter.Router
 }
 
-//http.Handler interface include serverHTTP function
 func NewMiddleWareHandler(r *httprouter.Router) http.Handler {
 	m := middleWareHandler{}
 	m.r = r
 	return m
 }
 
-//emmm没用了....
-//劫持Router.ServeHTTP
-//在处理请求前先验证session
-func (m middleWareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//check session
-	//validateUserSession(r)
-
-	m.r.ServeHTTP(w, r)
-}
 
 func RegisterHandlers() *httprouter.Router {
 	router := httprouter.New()
@@ -53,7 +43,7 @@ func RegisterHandlers() *httprouter.Router {
 	router.GET("/circles", ListCircles)
 	router.GET("/comments/:tid", ListComments)
 
-	//Upload pic
+	
 	router.POST("/upload/pics", UploadHandler)
 
 	router.POST("/admin/circle", CreateCircle)
@@ -70,9 +60,5 @@ func main() {
 	Prepare()
 	r := RegisterHandlers()
 	mh := NewMiddleWareHandler(r)
-	//http.HandleFunc("/ws", handleConnections)
-	// Start listening for incoming chat messages
-	//go handleMessages()
-	// Start the server on localhost port 8000
-	err := http.ListenAndServe(":8000", mh)
+	http.ListenAndServe(":8000", mh)
 }
