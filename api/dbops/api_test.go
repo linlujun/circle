@@ -9,8 +9,6 @@ import (
 )
 
 /*以下所有测试均已通过，后期api已发生改动，再次测试前注意更改测试方法
-topics、comments、circles id 类型改变
-topic contanturl->contant
 */
 func clearTables() {
 	dbConn.Exec("truncate users")
