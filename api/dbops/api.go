@@ -11,10 +11,7 @@ import (
 )
 
 /**
-待完善：
-1.外键
 
-2.操作类命令执行结果没做判断
 */
 //users ops
 func AddUserCredential(loginName string, pwd string, role int) error {
