@@ -16,26 +16,25 @@ import (
 	"time"
 )
 
-// 注册逻辑
-//请求为json
+
 func CreateUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	//读取请求体
+	
 	res, _ := ioutil.ReadAll(r.Body)
 	ubody := &defs.UserCredential{}
-	//反序列化json；此处对json内容不做检查，前端应完成检查
+	
 	if err := json.Unmarshal(res, ubody); err != nil {
 		sendErrorResponse(w, defs.ErrorRequestBodyParseFailed)
 		return
 	}
-	//写入DB users表
+	
 	if err := dbops.AddUserCredential(ubody.Username, ubody.Pwd, 0); err != nil {
 		sendErrorResponse(w, defs.ErrorDBError)
 		return
 	}
-	//生成session ID ，该函数同时会写入DB session表
+	
 	id := session.GenerateNewSessionId(ubody.Username)
 	su := &defs.SignedUp{Success: true, SessionId: id}
-	//序列化消息体并发回前端
+
 	if resp, err := json.Marshal(su); err != nil {
 		sendErrorResponse(w, defs.ErrorInternalFaults)
 		return
@@ -44,8 +43,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-//登录逻辑
-//json携带账号密码
+
 func Login(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	res, _ := ioutil.ReadAll(r.Body)
 	log.Printf("%s", res)
@@ -55,7 +53,7 @@ func Login(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		sendErrorResponse(w, defs.ErrorRequestBodyParseFailed)
 		return
 	}
-	//验证请求体
+	
 	uname := p.ByName("username")
 	log.Printf("login url name:%s", uname)
 	log.Printf("login body name:%s", ubody.Username)
@@ -71,7 +69,7 @@ func Login(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		sendErrorResponse(w, defs.ErrorNotAuthUser)
 		return
 	}
-	//分配session id 并存到cache—>DB
+	
 	id := session.GenerateNewSessionId(ubody.Username)
 	si := &defs.SignedIn{Success: true, SessionId: id}
 	if resp, err := json.Marshal(si); err != nil {
@@ -81,9 +79,7 @@ func Login(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-// NickName string `json:"nake_name"`
-// Desc     string `json:"desc"`
-// PicUrl   string `json:"pic_url"`
+
 func SetUserInfo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	uname := p.ByName("username")
 	n, ok := ValidateUser(w, r)
@@ -91,9 +87,7 @@ func SetUserInfo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		sendErrorResponse(w, defs.ErrorNotAuthUser)
 		return
 	}
-	//鉴权通过
 
-	//解析请求
 	res, _ := ioutil.ReadAll(r.Body)
 	body := &defs.SetUserInfo{}
 	if err := json.Unmarshal(res, body); err != nil {
@@ -120,9 +114,7 @@ func SetUserPwd(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		sendErrorResponse(w, defs.ErrorNotAuthUser)
 		return
 	}
-	//登录状态中
-
-	//解析请求
+	
 	res, _ := ioutil.ReadAll(r.Body)
 	body := &defs.SetUserPwd{}
 	if err := json.Unmarshal(res, body); err != nil {
@@ -143,19 +135,17 @@ func SetUserPwd(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-//加入圈子
+
 func JoninACircle(
 	w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	//本人操作
+	
 	uname := p.ByName("username")
 	n, ok := ValidateUser(w, r)
 	if !ok || n != uname {
 		sendErrorResponse(w, defs.ErrorNotAuthUser)
 		return
 	}
-	//已经登录
-
-	//解析请求
+	
 	res, _ := ioutil.ReadAll(r.Body)
 	body := &defs.JoninACircle{}
 	if err := json.Unmarshal(res, body); err != nil {
@@ -176,7 +166,7 @@ func JoninACircle(
 	}
 }
 
-//Delete user
+
 func DelUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	uname := p.ByName("username")
 	res, _ := ioutil.ReadAll(r.Body)
@@ -202,8 +192,7 @@ func DelUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-//获取用户信息
-//url:/user/:logi_nname
+
 
 func GetUserInfo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if !validateUserSession(r) {
@@ -211,7 +200,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		sendErrorResponse(w, defs.ErrorNotAuthUser)
 		return
 	}
-	//已经登录
+	
 	uname := p.ByName("username")
 	u, err := dbops.GetUserInfo(uname)
 	if err != nil {
@@ -227,12 +216,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-//贴子发表
-// {
-// 	"title":"wenzhang",
-// 	"circle_id":"b87e8748-d55e-430a-a2c5-0ac00b131e20",
-// 	"content":"23333333333333"
-// }
+
 
 func AddNewTopic(
 	w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -288,8 +272,7 @@ func DelTopic(
 	}
 }
 
-//获取贴子详情
-// /topic/:topicsid", GetTopicInfo
+
 
 func GetTopicInfo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
@@ -320,7 +303,6 @@ func GetTopicInfo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 // 	tid := p.ByName("topicid")
 // }
 
-//列出某个圈子的所有帖子
 
 func ListCircleTopics(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
@@ -388,10 +370,6 @@ func ListComments(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-// 	Content    string `json:"content"`
-// 	PicUrl     string `json:"pic_url"`
-// 	CommentId  string `json:"comment_id"`
-//  CircleId   string `json:"circle_id"`
 func AddComment(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	uname, ok := ValidateUser(w, r)
 	if !ok {
@@ -422,9 +400,7 @@ func AddComment(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 }
 
-//**管理员接口******************************************************/
-
-//创建圈子
+/
 func CreateCircle(
 	w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	uname, ok := ValidateUser(w, r)
@@ -432,15 +408,13 @@ func CreateCircle(
 		sendErrorResponse(w, defs.ErrorNotAuthUser)
 		return
 	}
-	//管理员
+	
 	if !IsAdmin(w, r) {
 		sendErrorResponse(w, defs.ErrorRoleFaults)
 		return
 	}
 
-	//登录状态中
-
-	//解析请求
+	
 	res, _ := ioutil.ReadAll(r.Body)
 	body := &defs.NewCircle{}
 	if err := json.Unmarshal(res, body); err != nil {
@@ -459,7 +433,6 @@ func CreateCircle(
 	}
 }
 
-//删除圈子
 func DelCircle(
 	w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	_, ok := ValidateUser(w, r)
@@ -471,7 +444,7 @@ func DelCircle(
 		sendErrorResponse(w, defs.ErrorRoleFaults)
 		return
 	}
-	//登录状态中
+
 	cid := p.ByName("cid")
 	err := dbops.DeleteCircle(cid)
 
@@ -488,7 +461,6 @@ func DelCircle(
 	}
 }
 
-//设置圈子描述
 func SetCircleDesc(
 	w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	_, ok := ValidateUser(w, r)
@@ -500,7 +472,7 @@ func SetCircleDesc(
 		sendErrorResponse(w, defs.ErrorRoleFaults)
 		return
 	}
-	//登录状态中
+
 
 	cid := p.ByName("cid")
 	res, _ := ioutil.ReadAll(r.Body)
@@ -525,7 +497,7 @@ func SetCircleDesc(
 	}
 }
 
-//上传
+
 func UploadHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
@@ -573,44 +545,4 @@ func UploadHandler(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 	sendNormalResponse(w, string(js), 200)
 }
 
-/*
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-	// Upgrade initial GET request to a websocket
-	ws, err := upgrader.Upgrade(w, r, nil)
-	websocket.Upgrade(w, r, responseHeader, readBufSize, writeBufSize)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Make sure we close the connection when the function returns
-	defer ws.Close()
-	clients[ws] = true
 
-	for {
-		var msg Message // Read in a new message as JSON and map it to a Message object
-		err := ws.ReadJSON(&msg)
-		if err != nil {
-			log.Printf("error: %v", err)
-			delete(clients, ws)
-			break
-		}
-		// Send the newly received message to the broadcast channel
-		broadcast <- msg
-	}
-}
-func handleMessages() {
-	for {
-		// Grab the next message from the broadcast channel
-		msg := <-broadcast
-		log.Fatal(msg)
-		// Send it out to every client that is currently connected
-		for client := range clients {
-			err := client.WriteJSON(msg)
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Close()
-				delete(clients, client)
-			}
-		}
-	}
-}
-*/
