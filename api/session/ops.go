@@ -18,13 +18,13 @@ func nowInMilli() int64 {
 	return time.Now().UnixNano() / 1000000
 }
 
-//清除过期session
+
 func deleteExpiredSession(sid string) {
 	sessionMap.Delete(sid)
 	dbops.DeleteSession(sid)
 }
 
-//从DB加载到缓存
+
 func LoadSessionsFromDB() {
 	r, err := dbops.RetrieveAllSessions()
 	if err != nil {
@@ -38,7 +38,7 @@ func LoadSessionsFromDB() {
 	})
 }
 
-//生成session
+
 func GenerateNewSessionId(login_name string) string {
 	id, _ := utils.NewUUID()
 	ct := nowInMilli()
@@ -52,9 +52,7 @@ func GenerateNewSessionId(login_name string) string {
 	return id
 }
 
-//获取session 并判断是否过期
-//如果过期则清除
-//考虑增加定期自动清除功能
+
 func IsSessionExpired(sid string) (string, bool) {
 	ss, ok := sessionMap.Load(sid)
 	if ok {
