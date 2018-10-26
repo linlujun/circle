@@ -12,7 +12,7 @@ var (
 
 func init() {
 	dbConn, err = sql.Open(
-		"mysql", "root:llj980905@tcp(localhost:3306)/test?charset=utf8")
+		"mysql", "")
 	if err != nil {
 		panic(err.Error())
 	}
